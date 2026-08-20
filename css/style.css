@@ -244,6 +244,8 @@ input, textarea { font-family: inherit; }
 /* ---------- App shell ---------- */
 .app {
   height: 100vh;
+  height: 100dvh;
+  height: calc(var(--app-vh, 1vh) * 100);
   display: grid;
   grid-template-columns: 320px 1fr;
 }
@@ -378,7 +380,7 @@ input, textarea { font-family: inherit; }
 }
 
 /* ---------- Chat panel ---------- */
-.chat-panel { display: flex; flex-direction: column; min-width: 0; height: 100vh; }
+.chat-panel { display: flex; flex-direction: column; min-width: 0; height: 100vh; height: 100dvh; height: calc(var(--app-vh, 1vh) * 100); }
 
 .chat-empty {
   flex: 1;
@@ -399,6 +401,7 @@ input, textarea { font-family: inherit; }
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .chat-header .back-btn {
@@ -415,6 +418,7 @@ input, textarea { font-family: inherit; }
 
 .messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 24px;
   display: flex;
@@ -512,10 +516,11 @@ input, textarea { font-family: inherit; }
 
 .composer {
   border-top: 1px solid var(--border);
-  padding: 14px 20px;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   display: flex;
   align-items: flex-end;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .img-preview-strip {

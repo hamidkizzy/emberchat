@@ -3,6 +3,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
+  // ---------- real viewport height (handles mobile keyboards correctly) ----------
+  // 100vh on phones ignores the on-screen keyboard, which pushes the composer
+  // off screen. window.visualViewport reports the actual visible area and
+  // updates live as the keyboard opens/closes, so we drive a CSS var from it.
+  function setAppHeight() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--app-vh', (h / 100) + 'px');
+  }
+  setAppHeight();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppHeight);
+    window.visualViewport.addEventListener('scroll', setAppHeight);
+  }
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', setAppHeight);
+
   const me = await EmberDB.currentUser();
   if (!me) {
     window.location.href = 'index.html';
@@ -336,6 +352,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     textInput.style.height = Math.min(textInput.scrollHeight, 120) + 'px';
   }
   textInput.addEventListener('input', () => { autoGrow(); updateSendState(); });
+  textInput.addEventListener('focus', () => {
+    setTimeout(() => textInput.scrollIntoView({ block: 'end', behavior: 'smooth' }), 250);
+  });
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
