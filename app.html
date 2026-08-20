@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ember</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12141c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ember">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="wordmark"><span class="flame">🔥</span> Ember</div>
+      <div class="me-chip">
+        <span id="me-name"></span>
+        <button id="signout-btn">sign out</button>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Search people…">
+    </div>
+
+    <div class="conv-list" id="conv-list"></div>
+  </aside>
+
+  <section class="chat-panel" id="chat-panel">
+    <div class="chat-empty" id="chat-empty">
+      <div class="flame-big">🔥</div>
+      <p>Pick someone on the left to start chatting.</p>
+    </div>
+
+    <div id="chat-active" style="display:none; flex-direction:column; height:100%;">
+      <div class="chat-header">
+        <button class="back-btn" id="back-btn">←</button>
+        <div class="avatar sm" id="chat-avatar"></div>
+        <div>
+          <div class="chat-header-name" id="chat-header-name"></div>
+          <div class="chat-header-status"><span class="ember-dot" style="width:6px;height:6px;"></span> demo contact</div>
+        </div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="img-preview-strip" id="img-preview-strip"></div>
+
+      <div class="composer">
+        <button class="icon-btn" id="attach-btn" title="Send a photo or file">📎</button>
+        <input type="file" id="file-input" multiple style="display:none">
+        <textarea id="text-input" placeholder="Type a message…" rows="1"></textarea>
+        <button class="send-btn" id="send-btn" disabled>➤</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close">×</button>
+  <img id="lightbox-img" src="" alt="">
+  <div class="lightbox-actions">
+    <button id="lightbox-download" class="primary">⬇ Download full quality</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/chat.js"></script>
+</body>
+</html>
