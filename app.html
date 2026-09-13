@@ -26,8 +26,12 @@
     </div>
 
     <div class="search-box">
-      <input type="text" id="search-input" placeholder="Search people…">
+      <input type="text" id="search-input" placeholder="Search your chats…">
     </div>
+
+    <button class="new-chat-btn" id="new-chat-btn">
+      <span>＋</span> New chat
+    </button>
 
     <div class="conv-list" id="conv-list"></div>
   </aside>
@@ -44,7 +48,7 @@
         <div class="avatar sm" id="chat-avatar"></div>
         <div>
           <div class="chat-header-name" id="chat-header-name"></div>
-          <div class="chat-header-status"><span class="ember-dot" style="width:6px;height:6px;"></span> demo contact</div>
+          <div class="chat-header-status" id="chat-header-status"></div>
         </div>
       </div>
 
@@ -69,6 +73,26 @@
     <button id="lightbox-download" class="primary">⬇ Download full quality</button>
   </div>
 </div>
+
+<div class="modal-overlay" id="newchat-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span class="wordmark" style="font-size:17px;">Find someone</span>
+      <button class="modal-close" id="newchat-close">×</button>
+    </div>
+    <div class="search-box" style="margin:0 0 14px;">
+      <input type="text" id="newchat-input" placeholder="Search by username…" autocomplete="off">
+    </div>
+    <div id="newchat-results" class="newchat-results"></div>
+  </div>
+</div>
+
+<div class="msg-menu" id="msg-menu">
+  <button id="menu-copy" type="button">📋 Copy text</button>
+  <button id="menu-delete-me" type="button">🗑️ Delete for me</button>
+  <button id="menu-delete-everyone" type="button" class="danger">🗑️ Delete for everyone</button>
+</div>
+<div class="msg-menu-backdrop" id="msg-menu-backdrop"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js"></script>
