@@ -3,21 +3,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // ---------- real viewport height (handles mobile keyboards correctly) ----------
-  // 100vh on phones ignores the on-screen keyboard, which pushes the composer
-  // off screen. window.visualViewport reports the actual visible area and
-  // updates live as the keyboard opens/closes, so we drive a CSS var from it.
+  // ---------- real viewport height (mobile keyboard handling) ----------
+  // Modern browsers with `interactive-widget=resizes-content` (set in the
+  // <meta viewport> tag) already shrink 100dvh correctly when the keyboard
+  // opens. We only need a JS fallback for browsers that DON'T support that
+  // (older iOS Safari). Running both at once causes double-compensation,
+  // which is what was pushing the composer off-screen — so we feature-detect.
+  const supportsInteractiveWidget = CSS.supports('height', '100dvh') && 'visualViewport' in window
+    && (() => {
+      // Heuristic: iOS Safari supports visualViewport but NOT the
+      // interactive-widget meta hint, so it still needs the JS fallback.
+      const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+      return !isIOS;
+    })();
+
   function setAppHeight() {
     const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.documentElement.style.setProperty('--app-vh', (h / 100) + 'px');
   }
-  setAppHeight();
-  if (window.visualViewport) {
+
+  if (!supportsInteractiveWidget && window.visualViewport) {
+    setAppHeight();
     window.visualViewport.addEventListener('resize', setAppHeight);
     window.visualViewport.addEventListener('scroll', setAppHeight);
+  } else {
+    document.documentElement.style.removeProperty('--app-vh');
   }
-  window.addEventListener('resize', setAppHeight);
-  window.addEventListener('orientationchange', setAppHeight);
+  window.addEventListener('orientationchange', () => {
+    if (!supportsInteractiveWidget) setTimeout(setAppHeight, 100);
+  });
+
+  // Re-sync everything when the page comes back from being backgrounded/
+  // suspended (switching apps, locking the phone, bfcache restore) — this
+  // is what was making the chat list look "stuck" until you touched search.
+  async function resyncOnResume() {
+    await renderConvList();
+    if (activeConv) await renderMessages();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') resyncOnResume();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) resyncOnResume();
+  });
+  window.addEventListener('focus', resyncOnResume);
 
   const me = await EmberDB.currentUser();
   if (!me) {
@@ -138,8 +167,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const emptyMsg = document.createElement('div');
       emptyMsg.className = 'conv-empty';
       emptyMsg.textContent = filter
-        ? 'No matches.'
-        : 'No chats yet. Tap "New chat" and search for a username to get started.';
+        ? `No chats match "${filter}". Tap "New chat" above to find someone by username instead.`
+        : 'No chats yet. Tap "New chat" above and search for a username to get started.';
       convList.appendChild(emptyMsg);
       return;
     }
@@ -190,6 +219,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     chatPanel.classList.remove('show');
   }
   backBtn.addEventListener('click', closeConversationMobile);
+
+  // Swipe right from anywhere in the chat to go back — matches the
+  // native edge-swipe-back gesture found in most iOS/Android apps.
+  (function enableSwipeBack() {
+    let startX = 0, startY = 0, tracking = false;
+    const THRESHOLD = 90;
+
+    chatPanel.addEventListener('touchstart', (e) => {
+      if (window.innerWidth > 780) return; // desktop: no swipe-back
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      tracking = true;
+    }, { passive: true });
+
+    chatPanel.addEventListener('touchmove', (e) => {
+      if (!tracking) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (dx > 40 && Math.abs(dy) < 60) {
+        chatPanel.style.transform = `translateX(${Math.min(dx, window.innerWidth)}px)`;
+        chatPanel.style.transition = 'none';
+      }
+    }, { passive: true });
+
+    chatPanel.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      chatPanel.style.transition = '';
+      chatPanel.style.transform = '';
+      if (dx > THRESHOLD && Math.abs(dy) < 60) {
+        closeConversationMobile();
+      }
+    });
+  })();
 
   async function renderMessages() {
     if (!activeConv) return;
@@ -515,9 +583,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     textInput.style.height = Math.min(textInput.scrollHeight, 120) + 'px';
   }
   textInput.addEventListener('input', () => { autoGrow(); updateSendState(); });
-  textInput.addEventListener('focus', () => {
-    setTimeout(() => textInput.scrollIntoView({ block: 'end', behavior: 'smooth' }), 250);
-  });
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Ember</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#12141c">
@@ -44,7 +44,9 @@
 
     <div id="chat-active" style="display:none; flex-direction:column; height:100%;">
       <div class="chat-header">
-        <button class="back-btn" id="back-btn">←</button>
+        <button class="back-btn" id="back-btn" aria-label="Back to chats">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
         <div class="avatar sm" id="chat-avatar"></div>
         <div>
           <div class="chat-header-name" id="chat-header-name"></div>
