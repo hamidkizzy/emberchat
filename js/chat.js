@@ -4,34 +4,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ---------- real viewport height (mobile keyboard handling) ----------
-  // Modern browsers with `interactive-widget=resizes-content` (set in the
-  // <meta viewport> tag) already shrink 100dvh correctly when the keyboard
-  // opens. We only need a JS fallback for browsers that DON'T support that
-  // (older iOS Safari). Running both at once causes double-compensation,
-  // which is what was pushing the composer off-screen — so we feature-detect.
-  const supportsInteractiveWidget = CSS.supports('height', '100dvh') && 'visualViewport' in window
-    && (() => {
-      // Heuristic: iOS Safari supports visualViewport but NOT the
-      // interactive-widget meta hint, so it still needs the JS fallback.
-      const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
-      return !isIOS;
-    })();
-
+  // Always measure the real visible height with visualViewport and drive
+  // a CSS var from it. (Relying on 100dvh alone isn't safe here — when no
+  // JS value is set, our CSS falls back to plain 100vh, which doesn't
+  // shrink for the keyboard on every browser, so we always compute it.)
   function setAppHeight() {
     const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.documentElement.style.setProperty('--app-vh', (h / 100) + 'px');
   }
-
-  if (!supportsInteractiveWidget && window.visualViewport) {
-    setAppHeight();
+  setAppHeight();
+  if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', setAppHeight);
     window.visualViewport.addEventListener('scroll', setAppHeight);
-  } else {
-    document.documentElement.style.removeProperty('--app-vh');
   }
-  window.addEventListener('orientationchange', () => {
-    if (!supportsInteractiveWidget) setTimeout(setAppHeight, 100);
-  });
+  window.addEventListener('resize', setAppHeight);
+  window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 100));
 
   // Re-sync everything when the page comes back from being backgrounded/
   // suspended (switching apps, locking the phone, bfcache restore) — this
